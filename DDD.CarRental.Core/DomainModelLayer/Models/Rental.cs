@@ -7,13 +7,13 @@ namespace DDD.CarRental.Core.DomainModelLayer.Models
 {
     public class Rental : Entity, IAggregateRoot
     {
-        public Guid CarId { get; private set; }
-        public Guid DriverId { get; private set; }
+        public long CarId { get; private set; }
+        public long DriverId { get; private set; }
         public DateTime Started { get; private set; }
         public DateTime? Finished { get; private set; }
         public Money? Total { get; private set; }
 
-        public Rental(Guid carId, Guid driverId)
+        public Rental(long carId, long driverId)
         {
             CarId = carId;
             DriverId = driverId;

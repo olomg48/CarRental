@@ -1,14 +1,14 @@
 ﻿using DDD.CarRental.Core.DomainModelLayer.Models;
-using DDD.SharedKernel.InfrastructureLayer;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace DDD.CarRental.Core.DomainModelLayer.Interfaces
 {
-    public interface ICarRepository
+    public interface IPositionService
     {
-        void Add(Car car);
-        Car GetById(long id);
-        IEnumerable<Car> GetAll();
+        Position GetCurrentPosition(long carId);
     }
 }
