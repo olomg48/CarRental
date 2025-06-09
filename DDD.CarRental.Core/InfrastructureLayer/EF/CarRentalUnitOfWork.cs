@@ -55,7 +55,10 @@ namespace DDD.CarRental.Core.InfrastructureLayer.EF
         }
 
         public void Dispose()
-        { }
+        {
+            _dbContext?.Dispose();
+        }
+
         public void RejectChanges()
         { }
     }

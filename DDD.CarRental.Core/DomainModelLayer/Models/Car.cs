@@ -27,6 +27,7 @@ namespace DDD.CarRental.Core.DomainModelLayer.Models
             CurrentPosition = initialPosition;
             Status = CarStatus.Free;
         }
+        protected Car() { }
 
         public void UpdatePosition(Position newPosition, Distance distanceTravelled)
         {
