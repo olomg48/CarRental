@@ -1,49 +1,106 @@
-﻿using DDD.CarRental.Core.ApplicationLayer.Commands.Handlers;
-using DDD.CarRental.Core.ApplicationLayer.Mappers;
-using DDD.CarRental.Core.ApplicationLayer.Queries.Handlers;
-using DDD.CarRental.Core.DomainModelLayer.Interfaces;
-using DDD.CarRental.Core.InfrastructureLayer.EF;
-using DDD.SharedKernel.DomainModelLayer;
-using DDD.SharedKernel.InfrastructureLayer.Implementations;
+﻿using System;
 using Microsoft.Extensions.DependencyInjection;
-using System;
+using DDD.CarRental.Core.ApplicationLayer.Commands;
+using DDD.CarRental.Core.ApplicationLayer.Queries;
+using DDD.CarRental.Core.DomainModelLayer.Models;
+using DDD.CarRental.Core.InfrastructureLayer.EF;
+using DDD.CarRental.Core.ApplicationLayer.Mappers;
+using DDD.CarRental.Core.DomainModelLayer.Interfaces;
+using DDD.SharedKernel.DomainModelLayer.Implementations;
+using DDD.CarRental.Core.ApplicationLayer.Commands.Handlers;
+using DDD.CarRental.Core.ApplicationLayer.Queries.Handlers;
+using DDD.SharedKernel.DomainModelLayer;
+using System.Linq;
 
-namespace DDD.CarRental.ConsoleTest
+class Program
 {
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            // create and configure DI container
-            IServiceCollection serviceCollection = new ServiceCollection();
-            ConfigureServices(serviceCollection);
+	static void Main(string[] args)
+	{
+		var services = new ServiceCollection();
+		// Rejestracja EF DbContext
+		services.AddDbContext<CarRentalDbContext>();
 
-            // create TestSuit & run scenario test
-            var testSuit = new TestSuit(serviceCollection);
-            testSuit.Run();
-        }
+		// Rejestracja publishera zdarzeń
+		services.AddSingleton<IDomainEventPublisher>();
 
-        static private void ConfigureServices(IServiceCollection serviceCollection)
-        {
-            // intializing and registering CarRentalDbContext
-            var context = TestUtils.InitializeCarRentalContext();
-            serviceCollection.AddSingleton(context);
+		// Rejestracja repozytoriów
+		services.AddScoped<ICarRepository, CarRepository>();
+		services.AddScoped<IDriverRepository, DriverRepository>();
+		services.AddScoped<IRentalRepository, RentalRepository>();
 
-            // registering command and query handlers
-            serviceCollection.AddSingleton<CommandHandler>();
-            serviceCollection.AddSingleton<QueryHandler>();
+		// Rejestracja Unit of Work
+		services.AddScoped<ICarRentalUnitOfWork, CarRentalUnitOfWork>();
 
-            // registering event publisher and handlers
-            serviceCollection.AddSingleton<IDomainEventPublisher, SimpleEventPublisher>();
-            
-            // registering unit of work and repos
-            serviceCollection.AddSingleton<ICarRentalUnitOfWork, CarRentalUnitOfWork>();
-            serviceCollection.AddSingleton<ICarRepository, CarRepository>();
-            serviceCollection.AddSingleton<IDriverRepository, DriverRepository>();
-            serviceCollection.AddSingleton<IRentalRepository, RentalRepository>();
-            
+		// Handlery komend
+		services.AddTransient<CreateDriverCommandHandler>();
+		services.AddTransient<CreateCarCommandHandler>();
+		services.AddTransient<RentCarCommandHandler>();
+		services.AddTransient<ReturnCarCommandHandler>();
 
-            // ToDo: Zarejestruj pozostałe usługi, fabryki, polityki, itp.
-        }
-    }
+		// Handlery zapytań
+		services.AddTransient<GetDriverByIdQueryHandler>();
+		services.AddTransient<GetCarByIdQueryHandler>();
+		services.AddTransient<GetAllCarsQueryHandler>();
+
+		var provider = services.BuildServiceProvider();
+
+		// 1. Create Driver
+		var createDriverHandler = provider.GetService<CreateDriverCommandHandler>();
+		createDriverHandler.Handle(new CreateDriverCommand
+		(
+			licenceNumber: Guid.NewGuid().ToString(),
+			firstName: "Jan",
+			lastName: "Kowalski"
+		));
+
+		// 2. Create Car
+		var createCarHandler = provider.GetService<CreateCarCommandHandler>();		
+		createCarHandler.Handle(new CreateCarCommand
+		(
+			registrationNumber: "KR12345",
+			x: 10,
+			y: 20,
+			unit: "km"
+		));
+
+		var getCarsHandler = provider.GetService<GetAllCarsQueryHandler>();
+		var allCars = getCarsHandler.Handle(new GetAllCarsQuery());
+		var carId = allCars.Last().Id;
+
+		var getDriversHandler = provider.GetService<GetAllDriversQueryHandler>();
+		var allDrivers = getDriversHandler.Handle(new GetAllDriversQuery());
+		var driverId = allDrivers.Last().Id;
+
+		// 3. Start Rental
+		var startRentalHandler = provider.GetService<RentCarCommandHandler>();
+		startRentalHandler.Handle(new RentCarCommand
+		(
+			carId: carId,
+			driverId: driverId
+		));
+
+		var getRentalsHandler = provider.GetService<GetAllRentalsQueryHandler>();
+		var allRentals = getRentalsHandler.Handle(new GetAllRentalsQuery());
+		var rentalId = allRentals.Last().Id;
+
+		// 4. End Rental
+		var endRentalHandler = provider.GetService<ReturnCarCommandHandler>();
+		endRentalHandler.Handle(new ReturnCarCommand
+		(
+			rentalId: rentalId,
+			pricePerMinute: 0.5
+		));
+
+		// 5. Get Driver
+		var driverQueryHandler = provider.GetService<GetDriverByIdQueryHandler>();
+		var driverDto = driverQueryHandler.Handle(new GetDriverByIdQuery(driverId));
+		Console.WriteLine($"Driver: {driverDto.FirstName} {driverDto.LastName}");
+
+		// 6. Get Car
+		var carQueryHandler = provider.GetService<GetCarByIdQueryHandler>();
+		var carDto = carQueryHandler.Handle(new GetCarByIdQuery(carId));
+		Console.WriteLine($"Car: {carDto.RegistrationNumber}, Status: {carDto.Status}");
+
+		Console.WriteLine("Test scenariusz wykonany pomyślnie");
+	}
 }

@@ -6,7 +6,15 @@ using System.Threading.Tasks;
 
 namespace DDD.CarRental.Core.ApplicationLayer.Commands
 {
-    internal class ReturnCarCommand
-    {
-    }
+	public class ReturnCarCommand
+	{
+		public long RentalId { get; set; }
+		public double PricePerMinute { get; set; }
+
+		public ReturnCarCommand(long rentalId, double pricePerMinute)
+		{
+			RentalId = rentalId;
+			PricePerMinute = pricePerMinute;
+		}
+	}
 }
