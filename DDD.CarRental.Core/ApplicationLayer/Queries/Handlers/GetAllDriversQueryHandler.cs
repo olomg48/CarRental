@@ -15,6 +15,8 @@ namespace DDD.CarRental.Core.ApplicationLayer.Queries.Handlers
 
         public GetAllDriversQueryHandler(ICarRentalUnitOfWork unitOfWork)
         {
+            Console.Write("testest22");
+
             _unitOfWork = unitOfWork;
         }
 

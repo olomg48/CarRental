@@ -19,14 +19,6 @@ namespace DDD.CarRental.ConsoleTest
                 .UseSqlite(sqliteConnectionString)
                 .Options;
 
-            //// baza danych MS SQL
-            //// wymagana instalacja pakietu Microsoft.EntityFrameworkCore.SqlServer
-            //var connectionString = @"Server=(localdb)\mssqllocaldb;Database=CarRental_DDD;Trusted_Connection=True;";
-            //var options = new DbContextOptionsBuilder<CarRentalDbContext>()
-            //    .UseLoggerFactory(LoggerFactory.Create(builder => builder.AddDebug()))   // umożliwia m.in. podglądanie SQL generowanego przez EF
-            //    .UseSqlServer(connectionString)
-            //    .Options;
-
             var context = new CarRentalDbContext(options);
 
             return context;

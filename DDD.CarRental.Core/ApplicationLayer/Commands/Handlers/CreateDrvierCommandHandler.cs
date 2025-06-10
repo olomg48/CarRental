@@ -22,6 +22,7 @@ namespace DDD.CarRental.Core.ApplicationLayer.Commands.Handlers
             var driver = new Driver(command.LicenceNumber, command.FirstName, command.LastName);
 
             _unitOfWork.DriverRepository.Add(driver);
+            Console.WriteLine("STWORZONO DRIVERA");
             _unitOfWork.Commit();
         }
     }

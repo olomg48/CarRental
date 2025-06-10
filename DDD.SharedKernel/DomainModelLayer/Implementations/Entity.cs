@@ -8,7 +8,8 @@ namespace DDD.SharedKernel.DomainModelLayer.Implementations
     {
         public long Id { get; protected set; }
 
-        private List<IDomainEvent> _domainEvents;
+        private List<IDomainEvent> _domainEvents = new List<IDomainEvent>();
+
         public IEnumerable<IDomainEvent> DomainEvents
         {
             get { return _domainEvents.AsReadOnly(); }
